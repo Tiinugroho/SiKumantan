@@ -1,3 +1,19 @@
+| Istilah        | Penjelasan                                                           |
+| :------------- | :------------------------------------------------------------------- |
+| **Repository** | Tempat penyimpanan project (folder proyek online di GitHub)          |
+| **Commit**     | Penyimpanan perubahan yang dibuat di repository                      |
+| **Branch**     | Cabang pengembangan dalam repository                                 |
+| **Clone**      | Mengunduh repository dari GitHub ke komputer lokal                   |
+| **Git Pull**   | Mengambil perubahan terbaru dari repository GitHub ke komputer lokal |
+| **Git Push**   | Mengirim perubahan dari komputer lokal ke repository GitHub          |
+| **Merge**      | Menggabungkan branch ke branch utama (biasanya `main` atau `master`) |
+
+1. | git clone |
+2. | composer install |
+3. | composer update |
+4. | php artisan key:generate |
+
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
