@@ -9,30 +9,33 @@ class SuratKeluarController extends Controller
 {
     public function index()
     {
-        $suratKeluar = SuratKeluar::latest()->get();
-        return view('admin.surat-keluar.index', compact('suratKeluar'));
+        $data = SuratKeluar::all();
+        return view('admin.suratkeluar.index', compact('data'));
+    }
+      public function show($id)
+    {
+        $data = SuratKeluar::findOrFail($id);
+        return view('admin.suratkeluar.show', compact('data'));
     }
 
-    public function store(Request $request)
+    public function edit($id)
+    {
+        $surat = SuratKeluar::findOrFail($id);
+        return view('admin.suratkeluar.edit', compact('surat'));
+    }
+
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'nomor_surat' => 'required',
-            'tanggal_surat' => 'required|date',
-            'tujuan' => 'required',
-            'perihal' => 'required',
-            'file_surat' => 'required|file|mimes:pdf,jpg,jpeg,png'
+            'no_surat' => 'required',
+            'tanggal_keluar' => 'required|date',
+            'keperluan' => 'required|string',
+            'status' => 'required'
         ]);
 
-        $file = $request->file('file_surat')->store('suratkeluar');
+        $surat = SuratKeluar::findOrFail($id);
+        $surat->update($request->all());
 
-        SuratKeluar::create([
-            'nomor_surat' => $request->nomor_surat,
-            'tanggal_surat' => $request->tanggal_surat,
-            'tujuan' => $request->tujuan,
-            'perihal' => $request->perihal,
-            'file_surat' => $file
-        ]);
-
-        return redirect()->back()->with('success', 'Surat keluar berhasil disimpan.');
+        return redirect()->route('admin.suratkeluar')->with('success', 'Data surat berhasil diperbarui.');
     }
 }

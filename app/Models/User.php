@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -15,8 +16,23 @@ class User extends Authenticatable
         'nik',
         'name',
         'email',
+        'status',
+        'alamat',
+        'jenis_kelamin',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'agama',
+        'pendidikan',
+        'jenis_pekerjaan',
         'photo_ktp',
         'password',
-        'status', // tambahin ini biar mass assignment bisa juga update status kalau butuh
     ];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    // Scope masyarakat
+    public function scopeMasyarakat($query)
+    {
+        return $query->role('masyarakat')->where('status', 'aktif');
+    }
 }

@@ -19,7 +19,8 @@
 
     <!-- Custom styles for this template-->
     <link href="{{asset('tmp/css/sb-admin-2.min.css')}}" rel="stylesheet">
-
+    <!-- Favicon  -->
+    <link rel="icon" href="{{asset('fn/images/logokampar.png')}}">
 </head>
 
 <body id="page-top">
@@ -83,7 +84,11 @@
                 <div class="modal-body">Apakah Anda Yakin Ingin Logout.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="{{ route('logout') }}">Logout</a>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">Logout</button>
+                    </form>
+
                 </div>
             </div>
         </div>

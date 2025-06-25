@@ -40,7 +40,7 @@
                 @if (Auth::check())
                     <div>
                         <div class="nav-item dropdown">
-                            <a class="btn-outline-sm dropdown-toggle" href="#">
+                            <a class="btn-outline-sm dropdown-toggle" href="#" data-toggle="dropdown">
                                 Hy, {{ Auth::user()->name }}
                             </a>
                             <div class="dropdown-menu dropdown-menu-right shadow rounded w-100">

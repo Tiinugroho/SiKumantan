@@ -14,10 +14,10 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $kadesRole = Role::where('name','kades')->first();
-        $sekretaris = Role::where('name','sekretaris')->first();
-        $staffRole = Role::where('name','staff-Tu')->first();
-        $masyarakatRole = Role::where('name','masyarakat')->first();
+        $kadesRole = Role::where('name', 'kades')->first();
+        $sekretaris = Role::where('name', 'sekretaris')->first();
+        $staffRole = Role::where('name', 'staff-Tu')->first();
+        $masyarakatRole = Role::where('name', 'masyarakat')->first();
 
         // Kades
         $kades = User::firstOrCreate(
@@ -26,12 +26,22 @@ class UserSeeder extends Seeder
                 'name' => 'Kepala Desa',
                 'email' => 'kades@desa.com',
                 'password' => Hash::make('kepaladesa2025'),
+                'status' => 'aktif'
             ]
         );
         $kades->assignRole($kadesRole);
 
         // Sekda
-        
+        $sekda = User::firstOrCreate(
+            ['nip' => '223344556677889900'],
+            [
+                'name' => 'Sekretaris Desa',
+                'email' => 'sekda1@desa.com',
+                'password' => Hash::make('sekretaris2025'),
+                'status' => 'aktif'
+            ]
+        );
+        $sekda->assignRole($sekretaris);
 
         // Staff TU
         $staff = User::firstOrCreate(
@@ -40,31 +50,9 @@ class UserSeeder extends Seeder
                 'name' => 'Staff Tata Usaha',
                 'email' => 'staff@desa.com',
                 'password' => Hash::make('staff2025'),
+                'status' => 'aktif'
             ]
         );
         $staff->assignRole($staffRole);
-        //sekda
-        $sekda = User::firstOrCreate(
-            ['nip' => '223344556677889900'],
-            [
-                'name' => 'Sekretaris Desa',
-                'email' => 'sekda1@desa.com',
-                'password' => Hash::make('sekretaris2025'),
-            ]
-        );
-        $sekda->assignRole($sekretaris);
-
-                // Masyarakat
-        $masyarakat = User::firstOrCreate(
-            ['nik' => '3305011701010001'],
-            [
-                'name' => 'Warga Desa',
-                'email' => 'warga@desa.com',
-                'password' => Hash::make('masyarakat2025'),
-            ]
-        );
-        $masyarakat->assignRole($masyarakatRole);
     }
-
-
 }

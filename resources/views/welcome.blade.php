@@ -8,7 +8,7 @@
                 <div class="col-lg-12">
 
                     <!-- Image Slider -->
-                    {{-- <div class="slider-container">
+                    <div class="slider-container">
                         <div class="swiper-container image-slider">
                             <div class="swiper-wrapper">
                                 <div class="swiper-slide">
@@ -37,7 +37,7 @@
                                 </div>
                             </div> <!-- end of swiper-wrapper -->
                         </div> <!-- end of swiper container -->
-                    </div> <!-- end of slider-container --> --}}
+                    </div> <!-- end of slider-container -->
                     <!-- end of image slider -->
 
                 </div> <!-- end of col -->

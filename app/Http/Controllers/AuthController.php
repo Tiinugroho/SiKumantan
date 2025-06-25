@@ -12,32 +12,42 @@ class AuthController extends Controller
 {
     public function index()
     {
-        return view('views.partials.login'); // Sesuaikan dengan nama view login yang kamu buat
-    }
-
-    public function showRegisterForm()
-    {
-        return view('Auth.register');
+        return view('views.partials.login');
     }
 
     public function showLoginForm()
     {
-        return view('Auth.login');
+        return view('auth.login');
+    }
+
+    public function showRegisterForm()
+    {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+        return view('auth.register');
     }
 
     // Register
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nik' => 'required|digits:16|unique:users,nik',
+            'nik' => 'required|digits:16',
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
+            'alamat' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'tempat_lahir' => 'required|string|max:100',
+            'tanggal_lahir' => 'required|date',
+            'agama' => 'required|string|max:50',
+            'pendidikan' => 'required|string|max:100',
+            'jenis_pekerjaan' => 'required|string|max:100',
             'photo_ktp' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'password' => 'required|min:6|confirmed',
         ], [
             'nik.required' => 'NIK wajib diisi.',
             'nik.digits' => 'NIK harus terdiri dari 16 digit.',
-            'nik.unique' => 'NIK ini sudah terdaftar.',
+            // validasi custom lainnya
         ]);
 
         if ($validator->fails()) {
@@ -46,75 +56,115 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        // Upload foto KTP
+        // Cek user dengan nik atau email yang statusnya ditolak
+        $existingUser = User::where(function ($query) use ($request) {
+            $query->where('nik', $request->nik)
+                ->orWhere('email', $request->email);
+        })->where('status', 'ditolak')->first();
+
+        // Upload foto KTP dulu
         $photoPath = $request->file('photo_ktp')->store('photos_ktp', 'public');
 
-        // Simpan user dengan status pending
-        $user = User::create([
-            'nik' => $request->nik,
-            'name' => $request->name,
-            'email' => $request->email,
-            'photo_ktp' => $photoPath,
-            'password' => Hash::make($request->password),
-            'status' => 'pending',
-        ]);
+        if ($existingUser) {
+            // Update data user yang ditolak tadi
+            $existingUser->name = $request->name;
+            $existingUser->email = $request->email;
+            $existingUser->password = Hash::make($request->password);
+            $existingUser->alamat = $request->alamat;
+            $existingUser->jenis_kelamin = $request->jenis_kelamin;
+            $existingUser->tempat_lahir = $request->tempat_lahir;
+            $existingUser->tanggal_lahir = $request->tanggal_lahir;
+            $existingUser->agama = $request->agama;
+            $existingUser->pendidikan = $request->pendidikan;
+            $existingUser->jenis_pekerjaan = $request->jenis_pekerjaan;
+            $existingUser->photo_ktp = $photoPath;
+            $existingUser->status = 'pending';
+            $existingUser->save();
 
-        return redirect()->route('login')->with('success', 'Akun berhasil dibuat. Silakan tunggu verifikasi dari admin/staff.');
+            return redirect()->route('login')->with('success', 'Akun berhasil diperbarui dan menunggu verifikasi ulang.');
+        } else {
+            // Cek juga nik/email sudah ada tapi bukan status ditolak
+            $duplicateCheck = User::where('nik', $request->nik)
+                ->orWhere('email', $request->email)
+                ->first();
+            if ($duplicateCheck) {
+                return redirect()->back()->withErrors(['nik' => 'NIK atau email sudah terdaftar'])->withInput();
+            }
+
+            // Buat user baru
+            $user = User::create([
+                'nik' => $request->nik,
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'alamat' => $request->alamat,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'agama' => $request->agama,
+                'pendidikan' => $request->pendidikan,
+                'jenis_pekerjaan' => $request->jenis_pekerjaan,
+                'photo_ktp' => $photoPath,
+                'status' => 'pending',
+            ]);
+
+            $user->assignRole('masyarakat');
+
+            return redirect()->route('login')->with('success', 'Akun berhasil dibuat. Silakan tunggu verifikasi dari admin/staff.');
+        }
     }
 
 
-
-    // Login JSON Response (kalau dipakai)
+    // Login
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
+        $request->validate([
+            'credential' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()]);
+        $credential = $request->input('credential');
+        $password = $request->input('password');
+
+        $data = User::where('nip', $credential)
+            ->orWhere('nik', $credential)
+            ->first();
+
+        if (!$data) {
+            return back()->withErrors([
+                'credential' => 'NIP/NIK tidak ditemukan.'
+            ])->withInput();
         }
 
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $user = Auth::user();
-
-            // Cek status langsung di kolom user
-            if ($user->status !== 'aktif') {
-                Auth::logout();
-                return response()->json(['error' => 'Akun Anda masih dalam proses verifikasi.']);
-            }
-
-            return response()->json(['message' => 'Login successful']);
+        if (!Hash::check($password, $data->password)) {
+            return back()->withErrors([
+                'credential' => 'Password salah.'
+            ])->withInput();
         }
 
-        return response()->json(['error' => 'Email atau Password salah.']);
+        if ($data->status === 'ditolak') {
+            return back()->withErrors([
+                'credential' => 'Maaf akun Anda ditolak. Alasan: ' . $data->alasan_tolak . ' Silakan registrasi ulang.'
+            ])->withInput();
+        }
+
+        if (
+            !$data->hasAnyRole(['kades', 'staff-Tu', 'sekretaris'])
+            && $data->status !== 'aktif'
+        ) {
+            return back()->withErrors([
+                'credential' => 'Akun Anda belum diverifikasi oleh admin. Mohon untuk menunggu, terima kasih.'
+            ])->withInput();
+        }
+
+        Auth::login($data);
+
+        if ($data->hasAnyRole(['kades', 'staff-Tu', 'sekretaris'])) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('welcome');
     }
-
-    // Login form biasa
-    public function authenticate(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
-            if ($user->status !== 'aktif') {
-                Auth::logout();
-                return redirect()->route('login')->withErrors([
-                    'email' => 'Akun Anda belum diverifikasi oleh admin/staff.',
-                ])->withInput();
-            }
-
-            return redirect()->route('home.index');
-        }
-
-        return redirect()->route('login')->withErrors([
-            'email' => 'Email atau Password salah.',
-        ])->withInput();
-    }
-
-
 
     public function logout()
     {

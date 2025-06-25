@@ -6,17 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    /**
+     * Run the migrations.
+     */
+    public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('status')->default('pending')->after('password');
+            $table->string('alasan_tolak')->nullable()->after('status');
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('status');
+            $table->dropColumn('alasan_tolak');
         });
     }
 };
